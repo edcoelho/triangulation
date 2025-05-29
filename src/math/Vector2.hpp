@@ -29,15 +29,17 @@ namespace convex_hull {
 
                 Vector2 operator * (float const& escalar) const;
 
-                float norm() const;
+                float norm () const;
 
-                void normalize();
+                void normalize ();
 
-                Vector2 unit() const;
+                Vector2 unit () const;
 
-                float dot(Vector2 const& vector) const;
+                float dot (Vector2 const& vector) const;
 
-                float cross(Vector2 const& vector) const;
+                float cross (Vector2 const& vector) const;
+
+                float angle (Vector2 const& vector) const;
 
         };
 

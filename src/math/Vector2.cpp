@@ -159,6 +159,12 @@ namespace convex_hull {
 
         }
 
+        float Vector2::angle (Vector2 const& vector) const {
+
+            return std::acos(this->unit().dot(vector.unit()));
+
+        }
+
     }
 
 }
