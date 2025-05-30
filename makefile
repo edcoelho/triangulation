@@ -2,7 +2,7 @@ SRC_DIR := src/
 BUILD_DIR := build/
 
 CXXFLAGS := -pedantic-errors -Wall -I$(SRC_DIR)
-LDLIBS := -lm
+LDLIBS := -lm -lGL -lGLEW -lglfw
 
 # Default main file.
 MAIN := $(addprefix $(SRC_DIR), main.cpp)

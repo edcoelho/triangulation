@@ -1,18 +1,20 @@
 #include "QuickHull.hpp"
 #include <algorithm>
 #include <tuple>
+#include <glm/glm.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 namespace convex_hull {
 
-    std::vector<math::Vector2> QuickHull::compute_hull (std::vector<math::Vector2> const& points, math::Vector2 const& pivot_low, math::Vector2 const& pivot_high) const {
+    std::vector<glm::vec2> QuickHull::compute_hull (std::vector<glm::vec2> const& points, glm::vec2 const& pivot_low, glm::vec2 const& pivot_high) const {
 
         if (points.size() <= 1) return points;
 
-        math::Vector2
+        glm::vec2
             pivot_vector = pivot_high - pivot_low,
             aux_vector, far_point;
 
-        std::vector<math::Vector2> partition1, partition2, final_hull;
+        std::vector<glm::vec2> partition1, partition2, final_hull;
 
         float
             triangle_area, angle,
@@ -23,7 +25,7 @@ namespace convex_hull {
         for (std::size_t i = 0; i < points.size(); ++i) {
 
             aux_vector = points[i] - pivot_low;
-            triangle_area = pivot_vector.cross(aux_vector)/2.0f;
+            triangle_area = glm::cross(glm::vec3(pivot_vector, 0.0f), glm::vec3(aux_vector, 0.0f)).z/2.0f;
 
             if (triangle_area > max_triangle_area) {
 
@@ -32,7 +34,7 @@ namespace convex_hull {
 
             } else if (triangle_area == max_triangle_area) {
 
-                angle = pivot_vector.angle(aux_vector);
+                angle = glm::angle(pivot_vector, aux_vector);
 
                 if (angle > max_angle) {
 
@@ -61,9 +63,9 @@ namespace convex_hull {
 
     }
 
-    std::pair<std::vector<math::Vector2>, std::vector<math::Vector2>> QuickHull::divide (std::vector<math::Vector2> const& points, math::Vector2 const& pivot_low, math::Vector2 const& pivot_high) const {
+    std::pair<std::vector<glm::vec2>, std::vector<glm::vec2>> QuickHull::divide (std::vector<glm::vec2> const& points, glm::vec2 const& pivot_low, glm::vec2 const& pivot_high) const {
 
-        std::pair<std::vector<math::Vector2>, std::vector<math::Vector2>> result;
+        std::pair<std::vector<glm::vec2>, std::vector<glm::vec2>> result;
         float aux;
 
         result.first.reserve(points.size());
@@ -71,7 +73,7 @@ namespace convex_hull {
 
         for (std::size_t i = 0; i < points.size(); ++i) {
 
-            aux = (pivot_high - pivot_low).cross(points[i] - pivot_low);
+            aux = glm::cross(glm::vec3(pivot_high - pivot_low, 0.0f), glm::vec3(points[i] - pivot_low, 0.0f)).z;
 
             if (aux > 0)
             
@@ -90,14 +92,14 @@ namespace convex_hull {
 
     }
 
-    std::vector<math::Vector2> QuickHull::compute_hull (std::vector<math::Vector2> const& points) const {
+    std::vector<glm::vec2> QuickHull::compute_hull (std::vector<glm::vec2> const& points) const {
 
         if (points.size() > 2) {
 
-            math::Vector2
+            glm::vec2
                 pivot_low = points[0],
                 pivot_high = points[0];
-            std::vector<math::Vector2> left_partition, right_partition, final_hull;
+            std::vector<glm::vec2> left_partition, right_partition, final_hull;
 
             // Finding indices of points with minimum and maximum abscissa.
             for (std::size_t i = 1; i < points.size(); ++i) {
