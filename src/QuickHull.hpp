@@ -8,6 +8,7 @@
 #include <vector>
 #include <utility>
 #include <glm/vec2.hpp>
+#include "AnimationFrame.hpp"
 
 namespace convex_hull {
 
@@ -15,7 +16,7 @@ namespace convex_hull {
 
         private:
 
-            std::vector<glm::vec2> compute_hull (std::vector<glm::vec2> const& points, glm::vec2 const& pivot_low, glm::vec2 const& pivot_high) const;
+            std::vector<glm::vec2> compute_hull (std::vector<glm::vec2> const& points, glm::vec2 const& pivot_low, glm::vec2 const& pivot_high, std::vector<AnimationFrame>& frames) const;
 
             std::pair<std::vector<glm::vec2>, std::vector<glm::vec2>> divide (std::vector<glm::vec2> const& points, glm::vec2 const& pivot_low, glm::vec2 const& pivot_high) const;
 
@@ -23,7 +24,15 @@ namespace convex_hull {
 
         public:
 
-            std::vector<glm::vec2> compute_hull (std::vector<glm::vec2> const& points) const;
+            struct QuickHullResult {
+
+                std::vector<glm::vec2> vertices;
+                std::vector<AnimationFrame> frames;
+
+            };
+
+            QuickHullResult compute_hull (std::vector<glm::vec2> const& points) const;
+            std::vector<AnimationFrame> compute_algorithm_steps (std::vector<glm::vec2> const& points) const;
 
     };
 

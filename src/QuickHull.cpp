@@ -6,9 +6,32 @@
 
 namespace convex_hull {
 
-    std::vector<glm::vec2> QuickHull::compute_hull (std::vector<glm::vec2> const& points, glm::vec2 const& pivot_low, glm::vec2 const& pivot_high) const {
+    std::vector<glm::vec2> QuickHull::compute_hull (std::vector<glm::vec2> const& points, glm::vec2 const& pivot_low, glm::vec2 const& pivot_high, std::vector<AnimationFrame>& frames) const {
 
-        if (points.size() <= 1) return points;
+        if (points.size() <= 1) {
+
+            std::size_t i = frames.size() - 1;
+
+            if (points.size() == 1) {
+
+                // Creating a new frame with all others edges plus 2 new pivot edges.
+                frames.push_back(frames[i]);
+                frames[i+1].pivot_edges.push_back(pivot_low);
+                frames[i+1].pivot_edges.push_back(points[0]);
+                frames[i+1].pivot_edges.push_back(points[0]);
+                frames[i+1].pivot_edges.push_back(pivot_high);
+
+                frames.push_back(frames[i]);
+                frames[i+2].hull_edges.push_back(pivot_low);
+                frames[i+2].hull_edges.push_back(points[0]);
+                frames[i+2].hull_edges.push_back(points[0]);
+                frames[i+2].hull_edges.push_back(pivot_high);
+
+            }
+
+            return points;
+
+        }
 
         glm::vec2
             pivot_vector = pivot_high - pivot_low,
@@ -50,8 +73,38 @@ namespace convex_hull {
         std::tie(partition1, partition2) = this->divide(points, pivot_low, far_point);
         partition2 = this->divide(partition2, far_point, pivot_high).first;
 
-        partition1 = this->compute_hull(partition1, pivot_low, far_point);
-        partition2 = this->compute_hull(partition2, far_point, pivot_high);
+        std::size_t i = frames.size() - 1;
+        frames.push_back(frames[i]);
+        frames[i+1].pivot_edges.push_back(pivot_low);
+        frames[i+1].pivot_edges.push_back(far_point);
+        frames[i+1].pivot_edges.push_back(far_point);
+        frames[i+1].pivot_edges.push_back(pivot_high);
+
+        partition1 = this->compute_hull(partition1, pivot_low, far_point, frames);
+        partition2 = this->compute_hull(partition2, far_point, pivot_high, frames);
+
+        i = frames.size() - 1;
+        frames.push_back(frames[i]);
+        for (std::size_t j = 0; j < 4; ++j) frames[i+1].pivot_edges.pop_back();
+
+        if (partition1.empty() && partition2.size() > 0) {
+
+            frames[i+1].hull_edges.push_back(pivot_low);
+            frames[i+1].hull_edges.push_back(far_point);
+
+        } else if (partition1.size() > 0 && partition2.empty()) {
+
+            frames[i+1].hull_edges.push_back(far_point);
+            frames[i+1].hull_edges.push_back(pivot_high);
+
+        } else if (partition1.empty() && partition2.empty()) {
+
+            frames[i+1].hull_edges.push_back(pivot_low);
+            frames[i+1].hull_edges.push_back(far_point);
+            frames[i+1].hull_edges.push_back(far_point);
+            frames[i+1].hull_edges.push_back(pivot_high);
+
+        }
 
         // Concatenating left and right hull and initial pivot points.
         final_hull.reserve(partition1.size() + partition1.size() + 1);
@@ -92,14 +145,15 @@ namespace convex_hull {
 
     }
 
-    std::vector<glm::vec2> QuickHull::compute_hull (std::vector<glm::vec2> const& points) const {
+    QuickHull::QuickHullResult QuickHull::compute_hull (std::vector<glm::vec2> const& points) const {
 
         if (points.size() > 2) {
 
             glm::vec2
                 pivot_low = points[0],
                 pivot_high = points[0];
-            std::vector<glm::vec2> left_partition, right_partition, final_hull;
+            std::vector<glm::vec2> left_partition, right_partition;
+            QuickHull::QuickHullResult result;
 
             // Finding indices of points with minimum and maximum abscissa.
             for (std::size_t i = 1; i < points.size(); ++i) {
@@ -111,21 +165,27 @@ namespace convex_hull {
 
             std::tie(left_partition, right_partition) = this->divide(points, pivot_low, pivot_high);
 
-            left_partition = this->compute_hull(left_partition, pivot_low, pivot_high);
-            right_partition = this->compute_hull(right_partition, pivot_high, pivot_low);
+            result.frames.push_back({{pivot_low, pivot_high}, {}});
+
+            left_partition = this->compute_hull(left_partition, pivot_low, pivot_high, result.frames);
+            right_partition = this->compute_hull(right_partition, pivot_high, pivot_low, result.frames);
+
+            std::size_t i = result.frames.size() - 1;
+            result.frames.push_back(result.frames[i]);
+            result.frames[i+1].pivot_edges.pop_back();
 
             // Concatenating left and right hull and initial pivot points.
-            final_hull.reserve(left_partition.size() + right_partition.size() + 2);
-            final_hull.push_back(pivot_low);
-            final_hull.insert(final_hull.end(), left_partition.begin(), left_partition.end());
-            final_hull.push_back(pivot_high);
-            final_hull.insert(final_hull.end(), right_partition.begin(), right_partition.end());
+            result.vertices.reserve(left_partition.size() + right_partition.size() + 2);
+            result.vertices.push_back(pivot_low);
+            result.vertices.insert(result.vertices.end(), left_partition.begin(), left_partition.end());
+            result.vertices.push_back(pivot_high);
+            result.vertices.insert(result.vertices.end(), right_partition.begin(), right_partition.end());
 
-            return final_hull;
+            return result;
 
         } else {
 
-            return points;
+            return {points, {{{}, points}}};
 
         }
 
