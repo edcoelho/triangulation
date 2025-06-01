@@ -1,9 +1,45 @@
 #include "utils.hpp"
 #include <GL/glew.h>
 #include <iostream>
+#include <stdexcept>
+#include <fstream>
+#include <sstream>
 
 namespace convex_hull {
     namespace render {
+
+        std::vector<glm::vec2> parse_obj (const std::string& file_name) {
+
+            std::ifstream file(file_name);
+            if (!file) {
+
+                throw std::invalid_argument("Failed to open file: " + file_name + "\n");
+
+            }
+
+            std::vector<glm::vec2> vertices;
+            std::string line;
+
+            while (std::getline(file, line)) {
+
+                std::istringstream ss(line);
+                std::string prefix;
+                ss >> prefix;
+
+                if (prefix == "v") {
+
+                    float x, y;
+                    ss >> x >> y;
+
+                    vertices.emplace_back(x, y);
+
+                }
+
+            }
+
+            return vertices;
+
+        }
 
         std::string get_openGL_version () {
 

@@ -32,7 +32,6 @@ namespace convex_hull {
             };
 
             QuickHullResult compute_hull (std::vector<glm::vec2> const& points) const;
-            std::vector<AnimationFrame> compute_algorithm_steps (std::vector<glm::vec2> const& points) const;
 
     };
 

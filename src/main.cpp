@@ -28,7 +28,7 @@ scene::Camera camera(
     // near and far distances (positive numbers)
     0.01f, 100.0f,
     // bottom, top, left, right
-    -5.0f, 5.0f, -5.0f, 5.0f
+    0.0f, 500.0f, 0.0f, 500.0f
 );
 
 render::Program program;
@@ -42,9 +42,13 @@ glm::mat4
 
 QuickHull quickhull;
 
-bool play_animation = false;
+bool
+    render_animation = false,
+    render_convex_hull = false;
 std::size_t animation_frame = 0;
 double animation_timer = 0.0;
+
+void setup_vertex_array(GLuint vao, GLuint vbo, GLuint attrib_location);
 
 int main(int argc, char * argv[]) {
 
@@ -56,11 +60,11 @@ int main(int argc, char * argv[]) {
         // Initializing GLFW.
         if (!glfwInit()) throw std::runtime_error("GLFW: Failed to initialize!");
 
-        // Creating window with hints.
+        // Setting GLFW hints.
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        render::Window window(700, 700, glm::vec4(0.0, 0.0, 0.0, 1.0), "Convex Hull Visualizer");
+        render::Window window(700, 700, glm::vec4(0.0, 0.0, 0.0, 1.0), "Quick Hull Visualizer");
 
         // Setting GLFW callbacks.
         glfwSetKeyCallback(window.get_glfw_handle(), render::glfw_key_callback);
@@ -103,37 +107,42 @@ int main(int argc, char * argv[]) {
 
         GLuint pos_attrib = glGetAttribLocation(program.get_id(), "pos");
 
-        // Creating a VAO for the static drawing.
+        std::vector<glm::vec2> vertices;
+        if (argc > 1) {
 
-        GLuint vao_static;
-        glGenVertexArrays(1, &vao_static);
-        glBindVertexArray(vao_static);
-        glEnableVertexAttribArray(pos_attrib);
+            vertices = render::parse_obj(argv[1]);
 
-        // Creating a VBO for vertex position.
+        } else {
 
-        std::vector<glm::vec2> points;
+            // Generating random points.
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_real_distribution<float> dist(camera.get_left() + (camera.get_right() - camera.get_left())/20.0f, camera.get_right() - (camera.get_right() - camera.get_left())/20.0f);
 
-        // Generating random points.
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_real_distribution<float> dist(-4.75f, 4.75f);
+            for (int i = 0; i < 50; ++i) {
 
-        for (int i = 0; i < 50; ++i) {
-            float x = dist(gen);
-            float y = dist(gen);
-            points.emplace_back(x, y);
+                float x = dist(gen);
+                float y = dist(gen);
+                vertices.emplace_back(x, y);
+
+            }
+
         }
 
-        QuickHull::QuickHullResult result = quickhull.compute_hull(points);
+        QuickHull::QuickHullResult quickhull_result = quickhull.compute_hull(vertices);
 
-        points.insert(points.end(), result.vertices.begin(), result.vertices.end());
+        // Creating VAOs for the static drawing.
 
-        GLuint vbo_static_pos;
-        glGenBuffers(1, &vbo_static_pos);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo_static_pos);
-        glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*points.size(), points.data(), GL_STATIC_DRAW);
+        GLuint vao_static[2];
+        glGenVertexArrays(2, vao_static);
+
+        // Creating VBOs for vertices and the convex hull.
+
+        GLuint vbo_static_pos[2];
+        glGenBuffers(2, vbo_static_pos);
+
+        setup_vertex_array(vao_static[0], vbo_static_pos[0], pos_attrib);
+        setup_vertex_array(vao_static[1], vbo_static_pos[1], pos_attrib);
 
         // Creating VAOs for the animation.
 
@@ -145,15 +154,8 @@ int main(int argc, char * argv[]) {
         GLuint vbo_animation_pos[2];
         glGenBuffers(2, vbo_animation_pos);
 
-        glBindVertexArray(vao_animation[0]);
-        glEnableVertexAttribArray(pos_attrib);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo_animation_pos[0]);
-        glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-
-        glBindVertexArray(vao_animation[1]);
-        glEnableVertexAttribArray(pos_attrib);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo_animation_pos[1]);
-        glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+        setup_vertex_array(vao_animation[0], vbo_animation_pos[0], pos_attrib);
+        setup_vertex_array(vao_animation[1], vbo_animation_pos[1], pos_attrib);
 
         animation_timer = glfwGetTime();
 
@@ -163,36 +165,35 @@ int main(int argc, char * argv[]) {
             // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glClear(GL_COLOR_BUFFER_BIT);
 
-            view_mat = camera.get_view_matrix();
-            projection_mat = camera.get_projection_matrix();
-            glUniformMatrix4fv(glGetUniformLocation(program.get_id(), "view_mat"), 1, GL_FALSE, glm::value_ptr(view_mat));
-            glUniformMatrix4fv(glGetUniformLocation(program.get_id(), "projection_mat"), 1, GL_FALSE, glm::value_ptr(projection_mat));
             glUniform4f(glGetUniformLocation(program.get_id(), "frag_color"), 1.0f, 1.0f, 1.0f, 1.0f);
             
-            glBindVertexArray(vao_static);
-            glDrawArrays(GL_POINTS, 0, points.size());
+            glBindVertexArray(vao_static[0]);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo_static_pos[0]);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*vertices.size(), vertices.data(), GL_STATIC_DRAW);
+            glDrawArrays(GL_POINTS, 0, vertices.size());
 
-            if (play_animation && result.frames.size() > 0) {
+            if (render_animation && quickhull_result.frames.size() > 0) {
 
                 glUniform4f(glGetUniformLocation(program.get_id(), "frag_color"), 1.0f, 0.0f, 1.0f, 1.0f);
                 glBindVertexArray(vao_animation[0]);
                 glBindBuffer(GL_ARRAY_BUFFER, vbo_animation_pos[0]);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*result.frames[animation_frame].pivot_edges.size(), result.frames[animation_frame].pivot_edges.data(), GL_DYNAMIC_DRAW);
-                glDrawArrays(GL_LINES, 0, result.frames[animation_frame].pivot_edges.size());
+                glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*quickhull_result.frames[animation_frame].pivot_edges.size(), quickhull_result.frames[animation_frame].pivot_edges.data(), GL_DYNAMIC_DRAW);
+                glDrawArrays(GL_LINES, 0, quickhull_result.frames[animation_frame].pivot_edges.size());
 
                 glUniform4f(glGetUniformLocation(program.get_id(), "frag_color"), 1.0f, 1.0f, 1.0f, 1.0f);
                 glBindVertexArray(vao_animation[1]);
                 glBindBuffer(GL_ARRAY_BUFFER, vbo_animation_pos[1]);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*result.frames[animation_frame].hull_edges.size(), result.frames[animation_frame].hull_edges.data(), GL_DYNAMIC_DRAW);
-                glDrawArrays(GL_LINES, 0, result.frames[animation_frame].hull_edges.size());
+                glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*quickhull_result.frames[animation_frame].hull_edges.size(), quickhull_result.frames[animation_frame].hull_edges.data(), GL_DYNAMIC_DRAW);
+                glDrawArrays(GL_LINES, 0, quickhull_result.frames[animation_frame].hull_edges.size());
 
                 if (glfwGetTime() - animation_timer >= 0.8) {
 
                     animation_timer = glfwGetTime();
-                    if (animation_frame + 1 == result.frames.size()) {
+                    if (animation_frame + 1 == quickhull_result.frames.size()) {
 
                         animation_frame = 0;
-                        play_animation = false;
+                        render_animation = false;
+                        render_convex_hull = true;
 
                     } else {
 
@@ -202,9 +203,12 @@ int main(int argc, char * argv[]) {
 
                 }
 
-            } else {
+            } else if (render_convex_hull) {
 
-                glDrawArrays(GL_LINE_LOOP, points.size() - result.vertices.size(), result.vertices.size());
+                glBindVertexArray(vao_static[1]);
+                glBindBuffer(GL_ARRAY_BUFFER, vbo_static_pos[1]);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*quickhull_result.vertices.size(), quickhull_result.vertices.data(), GL_STATIC_DRAW);
+                glDrawArrays(GL_LINE_LOOP, 0, quickhull_result.vertices.size());
 
             }
 
@@ -227,6 +231,15 @@ int main(int argc, char * argv[]) {
 
 }
 
+void setup_vertex_array(GLuint vao, GLuint vbo, GLuint attrib_location) {
+
+    glBindVertexArray(vao);
+    glEnableVertexAttribArray(attrib_location);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glVertexAttribPointer(attrib_location, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+
+}
+
 void render::glfw_error_callback(int error, const char* description) {
 
     std::cout << " Error " << error << std::endl;
@@ -244,9 +257,13 @@ void render::glfw_key_callback(GLFWwindow* window, int key, int scancode, int ac
 
         } else if (key == GLFW_KEY_P) {
 
-            play_animation = !play_animation;
+            render_animation = !render_animation;
             animation_frame = 0;
             animation_timer = glfwGetTime();
+
+        } else if (key == GLFW_KEY_O) {
+
+            render_convex_hull = !render_convex_hull;
 
         }
 

@@ -4,7 +4,9 @@
 #include <GL/glew.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <glm/vec2.hpp>
 #include <string>
+#include <vector>
 
 #ifndef APIENTRY
 #define APIENTRY
@@ -12,6 +14,8 @@
 
 namespace convex_hull {
     namespace render {
+
+        std::vector<glm::vec2> parse_obj (const std::string& file_name);
 
         // OpenGL Debug
 
