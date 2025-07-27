@@ -12,7 +12,6 @@
 #include "render/Shader.hpp"
 #include "render/Program.hpp"
 #include "render/utils.hpp"
-#include "AnimationFrame.hpp"
 #include "scene/Camera.hpp"
 #include "QuickHull.hpp"
 
@@ -42,9 +41,7 @@ glm::mat4
 
 QuickHull quickhull;
 
-bool
-    render_animation = false,
-    render_convex_hull = false;
+bool render_convex_hull = false;
 std::size_t animation_frame = 0;
 double animation_timer = 0.0;
 
@@ -129,7 +126,7 @@ int main(int argc, char * argv[]) {
 
         }
 
-        QuickHull::QuickHullResult quickhull_result = quickhull.compute_hull(vertices);
+        std::vector<glm::vec2> quickhull_result = quickhull.compute_hull(vertices);
 
         // Creating VAOs for the static drawing.
 
@@ -172,43 +169,12 @@ int main(int argc, char * argv[]) {
             glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*vertices.size(), vertices.data(), GL_STATIC_DRAW);
             glDrawArrays(GL_POINTS, 0, vertices.size());
 
-            if (render_animation && quickhull_result.frames.size() > 0) {
-
-                glUniform4f(glGetUniformLocation(program.get_id(), "frag_color"), 1.0f, 0.0f, 1.0f, 1.0f);
-                glBindVertexArray(vao_animation[0]);
-                glBindBuffer(GL_ARRAY_BUFFER, vbo_animation_pos[0]);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*quickhull_result.frames[animation_frame].pivot_edges.size(), quickhull_result.frames[animation_frame].pivot_edges.data(), GL_DYNAMIC_DRAW);
-                glDrawArrays(GL_LINES, 0, quickhull_result.frames[animation_frame].pivot_edges.size());
-
-                glUniform4f(glGetUniformLocation(program.get_id(), "frag_color"), 1.0f, 1.0f, 1.0f, 1.0f);
-                glBindVertexArray(vao_animation[1]);
-                glBindBuffer(GL_ARRAY_BUFFER, vbo_animation_pos[1]);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*quickhull_result.frames[animation_frame].hull_edges.size(), quickhull_result.frames[animation_frame].hull_edges.data(), GL_DYNAMIC_DRAW);
-                glDrawArrays(GL_LINES, 0, quickhull_result.frames[animation_frame].hull_edges.size());
-
-                if (glfwGetTime() - animation_timer >= 0.8) {
-
-                    animation_timer = glfwGetTime();
-                    if (animation_frame + 1 == quickhull_result.frames.size()) {
-
-                        animation_frame = 0;
-                        render_animation = false;
-                        render_convex_hull = true;
-
-                    } else {
-
-                        animation_frame = animation_frame + 1;
-
-                    }
-
-                }
-
-            } else if (render_convex_hull) {
+            if (render_convex_hull) {
 
                 glBindVertexArray(vao_static[1]);
                 glBindBuffer(GL_ARRAY_BUFFER, vbo_static_pos[1]);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*quickhull_result.vertices.size(), quickhull_result.vertices.data(), GL_STATIC_DRAW);
-                glDrawArrays(GL_LINE_LOOP, 0, quickhull_result.vertices.size());
+                glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*quickhull_result.size(), quickhull_result.data(), GL_STATIC_DRAW);
+                glDrawArrays(GL_LINE_LOOP, 0, quickhull_result.size());
 
             }
 
@@ -254,12 +220,6 @@ void render::glfw_key_callback(GLFWwindow* window, int key, int scancode, int ac
         if (key == GLFW_KEY_ESCAPE) {
 
             glfwSetWindowShouldClose(window, GLFW_TRUE);
-
-        } else if (key == GLFW_KEY_P) {
-
-            render_animation = !render_animation;
-            animation_frame = 0;
-            animation_timer = glfwGetTime();
 
         } else if (key == GLFW_KEY_O) {
 
