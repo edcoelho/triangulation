@@ -5,10 +5,10 @@
 #include <fstream>
 #include <sstream>
 
-namespace convex_hull {
+namespace triangulation {
     namespace render {
 
-        std::vector<glm::vec2> parse_obj (const std::string& file_name) {
+        std::vector<std::vector<glm::vec2>> parse_obj (const std::string& file_name) {
 
             std::ifstream file(file_name);
             if (!file) {
@@ -17,7 +17,8 @@ namespace convex_hull {
 
             }
 
-            std::vector<glm::vec2> vertices;
+            std::vector<std::vector<glm::vec2>> groups;
+            int current_group = -1;
             std::string line;
 
             while (std::getline(file, line)) {
@@ -28,16 +29,28 @@ namespace convex_hull {
 
                 if (prefix == "v") {
 
+                    if (current_group == -1) {
+
+                        groups.push_back(std::vector<glm::vec2>());
+                        ++current_group;
+
+                    }
+
                     float x, y;
                     ss >> x >> y;
 
-                    vertices.emplace_back(x, y);
+                    groups[current_group].emplace_back(x, y);
+
+                } else if (prefix == "g") {
+
+                    groups.push_back(std::vector<glm::vec2>());
+                    ++current_group;
 
                 }
 
             }
 
-            return vertices;
+            return groups;
 
         }
 

@@ -1,12 +1,12 @@
-#ifndef CONVEX_HULL_RENDER_WINDOW_HPP
-#define CONVEX_HULL_RENDER_WINDOW_HPP
+#ifndef TRIANGULATION_RENDER_WINDOW_HPP
+#define TRIANGULATION_RENDER_WINDOW_HPP
 
 #include <string>
 #include <GLFW/glfw3.h>
 #include <glm/vec4.hpp>
 #include "scene/Scene.hpp"
 
-namespace convex_hull {
+namespace triangulation {
     namespace render {
 
         class Window {

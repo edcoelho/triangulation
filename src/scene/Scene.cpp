@@ -1,6 +1,6 @@
 #include "scene/Scene.hpp"
 
-namespace convex_hull {
+namespace triangulation {
 namespace scene {
 
 Camera& Scene::get_camera() {

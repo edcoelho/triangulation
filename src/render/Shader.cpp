@@ -3,7 +3,7 @@
 #include <string>
 #include <fstream>
 
-namespace convex_hull {
+namespace triangulation {
     namespace render {
 
         Shader::Shader (GLenum _type) : type(_type) {}

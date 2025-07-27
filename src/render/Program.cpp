@@ -1,7 +1,7 @@
 #include "render/Program.hpp"
 #include <iostream>
 
-namespace convex_hull {
+namespace triangulation {
     namespace render {
 
         Program::Program () {}

@@ -1,6 +1,6 @@
 #include "scene/Camera.hpp"
 
-namespace convex_hull {
+namespace triangulation {
     namespace scene {
 
         Camera::Camera(glm::vec3 _position, glm::vec3 _look_at, glm::vec3 _view_up, ProjectionType _projection_type, float _near, float _far, float _bottom, float _top, float _left, float _right) : position(_position), look_at(_look_at), view_up(_view_up), projection_type(_projection_type), near(_near), far(_far), bottom(_bottom), top(_top), left(_left), right(_right), view_matrix(glm::mat4(1.0f)), projection_matrix(1.0f) {

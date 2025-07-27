@@ -1,5 +1,5 @@
-#ifndef CONVEX_HULL_QUICKHULL_HPP
-#define CONVEX_HULL_QUICKHULL_HPP
+#ifndef TRIANGULATION_QUICKHULL_HPP
+#define TRIANGULATION_QUICKHULL_HPP
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
 #define GLM_ENABLE_EXPERIMENTAL
@@ -9,7 +9,7 @@
 #include <utility>
 #include <glm/vec2.hpp>
 
-namespace convex_hull {
+namespace triangulation {
 
     class QuickHull {
 
@@ -22,8 +22,6 @@ namespace convex_hull {
             std::vector<glm::vec2> combine (std::vector<glm::vec2> const& points1, std::vector<glm::vec2> const& points2) const;
 
         public:
-
-            std::vector<glm::vec2> vertices;
 
             std::vector<glm::vec2> compute_hull (std::vector<glm::vec2> const& points) const;
 

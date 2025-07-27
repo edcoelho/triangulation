@@ -1,7 +1,7 @@
 #include "render/Window.hpp"
 #include <stdexcept>
 
-namespace convex_hull {
+namespace triangulation {
     namespace render {
 
         Window::Window(std::size_t width, std::size_t height, glm::vec4 clear_color, std::string title) : width(width), height(height), clear_color(clear_color), title(title) {

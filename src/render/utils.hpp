@@ -1,5 +1,5 @@
-#ifndef CONVEX_HULL_RENDER_UTILS_HPP_
-#define CONVEX_HULL_RENDER_UTILS_HPP_
+#ifndef TRIANGULATION_RENDER_UTILS_HPP_
+#define TRIANGULATION_RENDER_UTILS_HPP_
 
 #include <GL/glew.h>
 #define GLFW_INCLUDE_NONE
@@ -12,10 +12,10 @@
 #define APIENTRY
 #endif
 
-namespace convex_hull {
+namespace triangulation {
     namespace render {
 
-        std::vector<glm::vec2> parse_obj (const std::string& file_name);
+        std::vector<std::vector<glm::vec2>> parse_obj (const std::string& file_name);
 
         // OpenGL Debug
 

@@ -1,12 +1,12 @@
-#ifndef CONVEX_HULL_RENDER_PROGRAM_HPP_
-#define CONVEX_HULL_RENDER_PROGRAM_HPP_
+#ifndef TRIANGULATION_RENDER_PROGRAM_HPP_
+#define TRIANGULATION_RENDER_PROGRAM_HPP_
 
 #include <GL/glew.h>
 #include "render/Shader.hpp"
 #include <optional>
 #include <vector>
 
-namespace convex_hull {
+namespace triangulation {
     namespace render {
 
         class Program {

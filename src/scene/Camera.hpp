@@ -1,10 +1,10 @@
-#ifndef CONVEX_HULL_SCENE_CAMERA_HPP
-#define CONVEX_HULL_SCENE_CAMERA_HPP
+#ifndef TRIANGULATION_SCENE_CAMERA_HPP
+#define TRIANGULATION_SCENE_CAMERA_HPP
 
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 
-namespace convex_hull {
+namespace triangulation {
 namespace scene {
 
 enum ProjectionType {

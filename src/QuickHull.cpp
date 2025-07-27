@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
-namespace convex_hull {
+namespace triangulation {
 
     std::vector<glm::vec2> QuickHull::compute_hull (std::vector<glm::vec2> const& points, glm::vec2 const& pivot_low, glm::vec2 const& pivot_high) const {
 

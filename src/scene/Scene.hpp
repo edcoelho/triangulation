@@ -1,9 +1,9 @@
-#ifndef CONVEX_HULL_SCENE_SCENE_HPP
-#define CONVEX_HULL_SCENE_SCENE_HPP
+#ifndef TRIANGULATION_SCENE_SCENE_HPP
+#define TRIANGULATION_SCENE_SCENE_HPP
 
 #include "scene/Camera.hpp"
 
-namespace convex_hull {
+namespace triangulation {
 namespace scene {
 
 class Scene {
