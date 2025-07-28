@@ -13,7 +13,7 @@
 #include "render/Program.hpp"
 #include "render/utils.hpp"
 #include "scene/Camera.hpp"
-#include "QuickHull.hpp"
+#include "AdvancingFront.hpp"
 
 using namespace triangulation;
 
@@ -39,11 +39,9 @@ glm::mat4
     view_mat = camera.get_view_matrix(), // View transformation
     projection_mat = camera.get_projection_matrix(); // Projection transformation
 
-QuickHull quickhull;
-
 bool
-    render_groups_convex_hulls = false,
-    render_convex_hull = false;
+    render_groups_triangulations = false,
+    render_triangulation = false;
 
 void setup_vertex_array(GLuint vao, GLuint vbo, GLuint attrib_location);
 
@@ -139,19 +137,19 @@ int main(int argc, char * argv[]) {
 
         }
 
-        std::vector<glm::vec2> convex_hull = quickhull.compute_hull(vertices);
+        std::vector<glm::vec2> triangulation = AdvancingFront::compute_triangulation(vertices);
 
-        std::vector<std::vector<glm::vec2>> groups_convex_hull;
+        std::vector<std::vector<glm::vec2>> groups_triangulation;
         for (std::size_t i = 0; i < vertices_groups.size(); i++) {
 
-            groups_convex_hull.push_back(quickhull.compute_hull(vertices_groups[i]));
+            groups_triangulation.push_back(AdvancingFront::compute_triangulation(vertices_groups[i]));
 
         }
 
-        std::vector<GLuint> vao(2 + groups_convex_hull.size(), 0);
-        std::vector<GLuint> vbo_pos(2 + groups_convex_hull.size(), 0);
+        std::vector<GLuint> vao(2 + groups_triangulation.size(), 0);
+        std::vector<GLuint> vbo_pos(2 + groups_triangulation.size(), 0);
 
-        for (std::size_t i = 0; i < 2 + groups_convex_hull.size(); i++) {
+        for (std::size_t i = 0; i < 2 + groups_triangulation.size(); i++) {
         
             glGenVertexArrays(1, &vao[i]);
             glGenBuffers(1, &vbo_pos[i]);
@@ -164,6 +162,7 @@ int main(int argc, char * argv[]) {
 
             // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glClear(GL_COLOR_BUFFER_BIT);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
             glUniform4f(glGetUniformLocation(program.get_id(), "frag_color"), 1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -172,23 +171,23 @@ int main(int argc, char * argv[]) {
             glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*vertices.size(), vertices.data(), GL_STATIC_DRAW);
             glDrawArrays(GL_POINTS, 0, vertices.size());
 
-            if (render_convex_hull) {
+            if (render_triangulation) {
 
                 glBindVertexArray(vao[1]);
                 glBindBuffer(GL_ARRAY_BUFFER, vbo_pos[1]);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*convex_hull.size(), convex_hull.data(), GL_STATIC_DRAW);
-                glDrawArrays(GL_LINE_LOOP, 0, convex_hull.size());
+                glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*triangulation.size(), triangulation.data(), GL_STATIC_DRAW);
+                glDrawArrays(GL_TRIANGLES, 0, triangulation.size());
 
             }
 
-            if (render_groups_convex_hulls) {
+            if (render_groups_triangulations) {
 
-                for (std::size_t i = 0; i < groups_convex_hull.size(); i++) {
+                for (std::size_t i = 0; i < groups_triangulation.size(); i++) {
 
                     glBindVertexArray(vao[i + 2]);
                     glBindBuffer(GL_ARRAY_BUFFER, vbo_pos[i + 2]);
-                    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*groups_convex_hull[i].size(), groups_convex_hull[i].data(), GL_STATIC_DRAW);
-                    glDrawArrays(GL_LINE_LOOP, 0, groups_convex_hull[i].size());
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*groups_triangulation[i].size(), groups_triangulation[i].data(), GL_STATIC_DRAW);
+                    glDrawArrays(GL_TRIANGLES, 0, groups_triangulation[i].size());
 
                 }
 
@@ -239,11 +238,11 @@ void render::glfw_key_callback(GLFWwindow* window, int key, int scancode, int ac
 
         } else if (key == GLFW_KEY_1) {
 
-            render_convex_hull = !render_convex_hull;
+            render_triangulation = !render_triangulation;
 
         } else if (key == GLFW_KEY_2) {
 
-            render_groups_convex_hulls = !render_groups_convex_hulls;
+            render_groups_triangulations = !render_groups_triangulations;
 
         }
 
