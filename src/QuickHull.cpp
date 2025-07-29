@@ -6,7 +6,7 @@
 
 namespace triangulation {
 
-    std::vector<glm::vec2> QuickHull::compute_hull (std::vector<glm::vec2> const& points, glm::vec2 const& pivot_low, glm::vec2 const& pivot_high) const {
+    std::vector<glm::vec2> QuickHull::compute_hull (std::vector<glm::vec2> const& points, glm::vec2 const& pivot_low, glm::vec2 const& pivot_high) {
 
         if (points.size() <= 1) {
 
@@ -51,11 +51,11 @@ namespace triangulation {
 
         }
 
-        std::tie(partition1, partition2) = this->divide(points, pivot_low, far_point);
-        partition2 = this->divide(partition2, far_point, pivot_high).first;
+        std::tie(partition1, partition2) = QuickHull::divide(points, pivot_low, far_point);
+        partition2 = QuickHull::divide(partition2, far_point, pivot_high).first;
 
-        partition1 = this->compute_hull(partition1, pivot_low, far_point);
-        partition2 = this->compute_hull(partition2, far_point, pivot_high);
+        partition1 = QuickHull::compute_hull(partition1, pivot_low, far_point);
+        partition2 = QuickHull::compute_hull(partition2, far_point, pivot_high);
 
         // Concatenating left and right hull and initial pivot points.
         final_hull.reserve(partition1.size() + partition2.size() + 1);
@@ -67,7 +67,7 @@ namespace triangulation {
 
     }
 
-    std::pair<std::vector<glm::vec2>, std::vector<glm::vec2>> QuickHull::divide (std::vector<glm::vec2> const& points, glm::vec2 const& pivot_low, glm::vec2 const& pivot_high) const {
+    std::pair<std::vector<glm::vec2>, std::vector<glm::vec2>> QuickHull::divide (std::vector<glm::vec2> const& points, glm::vec2 const& pivot_low, glm::vec2 const& pivot_high) {
 
         std::pair<std::vector<glm::vec2>, std::vector<glm::vec2>> result;
         float aux;
@@ -96,7 +96,7 @@ namespace triangulation {
 
     }
 
-    std::vector<glm::vec2> QuickHull::compute_hull (std::vector<glm::vec2> const& points) const {
+    std::vector<glm::vec2> QuickHull::compute_hull (std::vector<glm::vec2> const& points) {
 
         if (points.size() > 2) {
 
@@ -114,10 +114,10 @@ namespace triangulation {
 
             }
 
-            std::tie(left_partition, right_partition) = this->divide(points, pivot_low, pivot_high);
+            std::tie(left_partition, right_partition) = QuickHull::divide(points, pivot_low, pivot_high);
 
-            left_partition = this->compute_hull(left_partition, pivot_low, pivot_high);
-            right_partition = this->compute_hull(right_partition, pivot_high, pivot_low);
+            left_partition = QuickHull::compute_hull(left_partition, pivot_low, pivot_high);
+            right_partition = QuickHull::compute_hull(right_partition, pivot_high, pivot_low);
 
             // Concatenating left and right hull and initial pivot points.
             result.reserve(left_partition.size() + right_partition.size() + 2);
