@@ -169,6 +169,7 @@ int main(int argc, char * argv[]) {
             glBindVertexArray(vao[0]);
             glBindBuffer(GL_ARRAY_BUFFER, vbo_pos[0]);
             glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*vertices.size(), vertices.data(), GL_STATIC_DRAW);
+            glPointSize(5);
             glDrawArrays(GL_POINTS, 0, vertices.size());
 
             if (render_triangulation) {
